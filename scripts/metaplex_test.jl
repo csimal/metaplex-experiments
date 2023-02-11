@@ -3,7 +3,7 @@ using DrWatson
 
 using Plots
 using Random
-using BenchmarkTools
+#using BenchmarkTools
 using JLD2
 
 include(srcdir("HeterogeneousMetaplexExperiment.jl"))
@@ -11,7 +11,7 @@ include(srcdir("HeterogeneousMetaplexExperiment.jl"))
 Random.seed!(2023)
 
 M = 10
-N = 10 * M
+N = 1000 * M
 
 ba_k = 5
 
@@ -42,6 +42,9 @@ u0, u0_mp = initial_condition(mpx, 1)
 
 #sol = final_infection(mpx, u0, 100.0)
 
-b = @benchmark full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
 
-jldsave("benchmark.jld2", b)
+t1 = @timed full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
+t2 = @timed full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
+
+
+jldsave("benchmark.jld2", t1, t2)

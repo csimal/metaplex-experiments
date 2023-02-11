@@ -61,16 +61,17 @@ end
 
 function single_experiment(mpx::HeterogeneousMetaplex, u_0, tmax, μ; kws...)
     fi = final_infection(mpx, u_0, tmax; kws...)
+    M = nv(mpx.h)
     df = DataFrame(
-        :h_hash => hash(mpx.h)
-        :g_hash => hash(mpx.g)
-        :h => mpx.h
-        :g_ks => (mean ∘ degree).(mpx.g)
-        :beta => [d.β for d in mpx.dynamics]
-        :gamma => mpx.dynamics[1].γ
-        :D => mpx.D[1]
-        :final_infection => sum(fi[:,2,end])
-        :t_final => fi.t[end]
+        :h_hash => hash(mpx.h),
+        :g_hash => hash(mpx.g),
+        :h => mpx.h,
+        :g_ks => (mean ∘ degree).(mpx.g),
+        :beta => [d.β for d in mpx.dynamics],
+        :gamma => mpx.dynamics[1].γ,
+        :D => mpx.D[1],
+        :final_infection => reshape(sum(fi[2,:,:,end], dims=1),M),
+        :t_final => fi.t[end],
         :modified_node => μ # 0 denotes no modified node
     )
     return df
@@ -117,6 +118,15 @@ function modify_system(mpx::HeterogeneousMetaplex{SIS}, μ, β, g)
 end
 
 """
+    modify_system!(p, mpx, μ, β, g))
+
+Modify the ODE parameters of the mpx system
+"""
+function modify_system!(p, mpx::HeterogeneousMetaplex{SIS}, μ, β, g)
+    
+end
+
+"""
     final_infection(mpx, u_0, tmax; kws...)
 
 Compute the solution of the system `mpx` with initial condition `u_0` up to time `tmax`.
@@ -128,7 +138,11 @@ end
 
 function final_infection(f!, p, u_0, tmax; solver=Tsit5(), kws...)
     prob = ODEProblem(f!, u_0, (0.0,tmax), p)
-    return solve(prob, solver; callback=TerminateSteadyState())
+    return solve(prob, solver; 
+                 callback = TerminateSteadyState(), # Stop when near equilibrium
+                 save_everystep = false, # only save last step
+                 save_start = false, # don't save initial condition
+                )
 end
 
 """

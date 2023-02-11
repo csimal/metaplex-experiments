@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.5"
+julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "07682ff36f150121d7b6242f8bcb54a56055768b"
+project_hash = "55d33e771e21e4beb4a93ce348f3cfcba9a44b19"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -194,7 +194,7 @@ version = "4.6.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.0.1+0"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -864,7 +864,9 @@ version = "1.0.1"
 
 [[deps.NetworkEpidemics]]
 deps = ["DataStructures", "FillArrays", "Graphs", "LinearAlgebra", "OrdinaryDiffEq", "ProgressMeter", "StatsBase"]
-path = "/home/csimal/.julia/dev/NetworkEpidemics"
+git-tree-sha1 = "bcefabd3ea3ce850d2101c38f4874349bd8c2be4"
+repo-rev = "master"
+repo-url = "https://github.com/csimal/NetworkEpidemics.jl.git"
 uuid = "19a28150-5d3d-11ea-0c68-3d7d6069d736"
 version = "0.1.0"
 
