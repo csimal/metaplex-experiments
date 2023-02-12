@@ -11,7 +11,7 @@ include(srcdir("HeterogeneousMetaplexExperiment.jl"))
 Random.seed!(2023)
 
 M = 10
-N = 1000 * M
+N = 100 * M
 
 ba_k = 5
 
@@ -46,5 +46,6 @@ u0, u0_mp = initial_condition(mpx, 1)
 t1 = @timed full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
 t2 = @timed full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
 
+t1.time
 
 jldsave("benchmark.jld2", t1, t2)

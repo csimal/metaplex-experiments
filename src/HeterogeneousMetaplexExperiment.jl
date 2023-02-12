@@ -1,6 +1,7 @@
 using NetworkEpidemics
 using Graphs
 using DifferentialEquations
+using LSODA
 using Parameters: @with_kw
 using Statistics
 using DataFrames
@@ -40,14 +41,6 @@ struct HeterogeneousMetaplexResult
     ts::Vector{Float64}
 end
 
-function compute_experiment(exp::HeterogeneousMetaplexExperiment)
-    ts = LinRange(0.0, exp.tmax, exp.nbins)
-    mpx = HeterogeneousMetaplex(exp.gs, exp.h, exp.D, exp.dynamics)
-
-    for μ in vertices(exp.h)
-        single_experiment(exp, μ, u_0)
-    end
-end
 
 function single_experiment(exp::HeterogeneousMetaplexExperiment, μ, u_0; kws...)
     gs = copy(exp.gs)
@@ -59,37 +52,54 @@ function single_experiment(exp::HeterogeneousMetaplexExperiment, μ, u_0; kws...
     return us, fi.t
 end
 
-function single_experiment(mpx::HeterogeneousMetaplex, u_0, tmax, μ; kws...)
-    fi = final_infection(mpx, u_0, tmax; kws...)
+"""
+    single_experiment(mpx, f!, p, u_0, u_0, tmax, μ; kws...)
+"""
+function single_experiment(mpx::HeterogeneousMetaplex, f!, p, u_0, tmax, μ; kws...)
+    fi = final_infection(f!, p, u_0, tmax; kws...)
     M = nv(mpx.h)
     df = DataFrame(
         :h_hash => hash(mpx.h),
         :g_hash => hash(mpx.g),
         :h => mpx.h,
+        :modified_node => μ, # 0 denotes no modified node
         :g_ks => (mean ∘ degree).(mpx.g),
         :beta => [d.β for d in mpx.dynamics],
         :gamma => mpx.dynamics[1].γ,
         :D => mpx.D[1],
-        :final_infection => reshape(sum(fi[2,:,:,end], dims=1),M),
+        :final_infection_pattern => reshape(sum(fi[2,:,:,end], dims=1),M),
+        :final_infection => sum(fi[2,:,:,end]),
         :t_final => fi.t[end],
-        :modified_node => μ # 0 denotes no modified node
     )
     return df
 end
 
+function single_experiment(mp::HeterogeneousMetapopulation, f!, p, u_0, tmax, μ; kws...)
+    fi = final_infection(f!, p, u_0, tmax; kws...)
+    
+end
+
 function full_experiment(mpx::HeterogeneousMetaplex, u_0, β_factor, k_base, k_factor, tmax; kws...)
+    mp = HeterogeneousMetapopulation(mpx)
     β = mpx.dynamics[1].β
     N = nv(mpx.g[1])
-    df = DataFrame()
-    df_ = single_experiment(mpx, u_0, tmax, 0; kws...)
-    append!(df, df_)
+    f_mpx!, p_mpx = meanfield_fun(mpx)
+    f_mp!, p_mp = meanfield_fun(mp)
+    p_μ = deepcopy(p_mpx)
+    mpx_μ = deepcopy(mpx)
+    df_mpx = DataFrame()
+    df_mp = DataFrame()
+    df_ = single_experiment(mpx, f_mpx!, p_mpx, u_0, tmax, 0; kws...)
+    append!(df_mpx, df_)
+    df_ = single_experiment(mp, μ)
     for μ in vertices(mpx.h)
         g = erdos_renyi(N, (k_base*k_factor)/N)
-        mpx_ = modify_system(mpx, μ, β_factor*β, g)
-        df_ = single_experiment(mpx_, u_0, tmax; kws...)
+        modify_system!(mpx_μ, p_μ, μ, β_factor*β, g)
+        df_ = single_experiment(mpx_μ, f_mpx!, p_μ, u_0, tmax, μ; kws...)
+        reset_system!(mpx_μ, p_μ, mpx, p_mpx, μ)
         append!(df, df_)
     end
-    return df
+    return df_mpx
 end
 
 """
@@ -118,12 +128,20 @@ function modify_system(mpx::HeterogeneousMetaplex{SIS}, μ, β, g)
 end
 
 """
-    modify_system!(p, mpx, μ, β, g))
+    modify_system(p, mpx, μ, β, g))
 
 Modify the ODE parameters of the mpx system
 """
-function modify_system!(p, mpx::HeterogeneousMetaplex{SIS}, μ, β, g)
-    
+function modify_system!(mpx::HeterogeneousMetaplex{SIS}, p, μ, β_new, g)
+    mpx.g[μ] = g
+    p[1][μ] = β_new
+    p[4][μ] = float.(adjacency_matrix(g))
+end
+
+function reset_system!(mpx_μ, p_μ, mpx, p, μ)
+    mpx_μ.g[μ] = mpx.g[μ]
+    p_μ[1][μ] = p[1][μ]
+    p_μ[4][μ] = p[4][μ]
 end
 
 """
