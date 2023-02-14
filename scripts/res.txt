@@ -1,1 +1,0 @@
-slurmstepd: error: *** JOB 2671147 ON her2-w095 CANCELLED AT 2023-02-11T16:43:54 DUE TO TIME LIMIT ***

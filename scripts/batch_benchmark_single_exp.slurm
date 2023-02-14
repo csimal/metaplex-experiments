@@ -1,10 +1,9 @@
 #!/bin/bash
 
 #SBATCH --partition=batch
-#SBATCH --job-name=metaplex-benchmark
-# NB. %x interpolates the job name and %j interpolates the job id
-#SBATCH --output=res_%x_%j.txt
-#SBATCH --output=error_%x%j.txt
+#SBATCH --job-name=single_exp-benchmark
+#SBATCH --output=output/res_%x_%j.txt
+#SBATCH --output=output/error_%x_%j.txt
 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -16,7 +15,6 @@
 
 ml load Julia/1.8.2-linux-x86_64 
 
-#julia install.jl
 
-julia metaplex_test.jl
+julia benchmark_single_experiment.jl
 

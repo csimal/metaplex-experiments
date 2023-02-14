@@ -1,9 +1,8 @@
 using DrWatson
 @quickactivate "metaplex-experiments"
 
-using Plots
 using Random
-#using BenchmarkTools
+using BenchmarkTools
 using JLD2
 
 include(srcdir("HeterogeneousMetaplexExperiment.jl"))
@@ -40,11 +39,8 @@ mpx = HeterogeneousMetaplex(
 
 u0, u0_mp = initial_condition(mpx, 1)
 
-#sol = final_infection(mpx, u0, 100.0)
+b = @benchmark final_infection(mpx, u0, 100.0)
 
+@show b
 
-df1 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
-df2 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
-
-
-jldsave("benchmark.jld2", df1, df2)
+jldsave("benchmark_single_exp.jld2"; b)
