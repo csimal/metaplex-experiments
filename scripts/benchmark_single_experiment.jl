@@ -1,7 +1,6 @@
 using DrWatson
 @quickactivate "metaplex-experiments"
 
-using Plots
 using Random
 using BenchmarkTools
 using JLD2
@@ -40,25 +39,8 @@ mpx = HeterogeneousMetaplex(
 
 u0, u0_mp = initial_condition(mpx, 1)
 
-du = copy(u0)
+b = @benchmark final_infection(mpx, u0, 100.0)
 
-f!, p = meanfield_fun(mpx)
+@show b
 
-@benchmark f!(du, u0, p, 0.0)
-
-mp = HeterogeneousMetapopulation(mpx)
-u0_mp = copy(transpose(u0_mp))
-du_mp = copy(u0_mp)
-
-f_mp!, p_mp = meanfield_fun(mp)
-@benchmark f_mp!(du_mp, u0_mp, p_mp, 0.0)
-
-final_infection(mpx, u0, 10.0)
-
-@benchmark final_infection(mpx, u0, 10.0)
-
-df1 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
-df2 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
-
-
-jldsave("benchmark.jld2", df1, df2)
+jldsave("benchmark_single_exp.jld2"; b)
