@@ -57,8 +57,9 @@ final_infection(mpx, u0, 10.0)
 
 @benchmark final_infection(mpx, u0, 10.0)
 
-df1 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
-df2 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
+t1 = @timed full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
+t2 = @timed full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
 
+t1.time
 
-jldsave("benchmark.jld2", df1, df2)
+jldsave("benchmark.jld2", t1, t2)

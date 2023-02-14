@@ -80,18 +80,18 @@ function single_experiment(mp::HeterogeneousMetapopulation, f!, p, u_0, tmax, μ
 end
 
 function full_experiment(mpx::HeterogeneousMetaplex, u_0, β_factor, k_base, k_factor, tmax; kws...)
-    #mp = HeterogeneousMetapopulation(mpx)
+    mp = HeterogeneousMetapopulation(mpx)
     β = mpx.dynamics[1].β
     N = nv(mpx.g[1])
     f_mpx!, p_mpx = meanfield_fun(mpx)
-    #f_mp!, p_mp = meanfield_fun(mp)
+    f_mp!, p_mp = meanfield_fun(mp)
     p_μ = deepcopy(p_mpx)
     mpx_μ = deepcopy(mpx)
     df_mpx = DataFrame()
-    #df_mp = DataFrame()
+    df_mp = DataFrame()
     df_ = single_experiment(mpx, f_mpx!, p_mpx, u_0, tmax, 0; kws...)
     append!(df_mpx, df_)
-    #df_ = single_experiment(mp, f_mp!, p_mp, u0_mp, tmax, 0; kws...)
+    df_ = single_experiment(mp, μ)
     for μ in vertices(mpx.h)
         g = erdos_renyi(N, (k_base*k_factor)/N)
         modify_system!(mpx_μ, p_μ, μ, β_factor*β, g)

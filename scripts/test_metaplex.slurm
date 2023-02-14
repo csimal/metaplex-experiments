@@ -2,15 +2,13 @@
 
 #SBATCH --partition=batch
 #SBATCH --job-name=metaplex-benchmark
-# NB. %x interpolates the job name and %j interpolates the job id
-#SBATCH --output=res_%x_%j.txt
-#SBATCH --output=error_%x%j.txt
+#SBATCH --output=res.txt
 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=32G
-#SBATCH --time=00:45:00
+#SBATCH --mem-per-cpu=64G
+#SBATCH --time=00:30:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=cedric.simal@unamur.be
 
