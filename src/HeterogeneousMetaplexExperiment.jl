@@ -1,7 +1,7 @@
 using NetworkEpidemics
 using Graphs
 using DifferentialEquations
-using LSODA
+#using LSODA
 using Parameters: @with_kw
 using Statistics
 using DataFrames
@@ -163,6 +163,16 @@ function final_infection(f!, p, u_0, tmax; solver=Tsit5(), kws...)
                 )
 end
 
+function solve_infection(mpx, u_0, tmax; solver=Tsit5(), kws...)
+    f!, p = meanfield_fun(mpx)
+    return solve_infection(f!, p, u_0, tmax; solver=solver, kws...)
+end
+
+function solve_infection(f!, p, u_0, tmax; solver=Tsit5(), kws...)
+    prob = ODEProblem(f!, u_0, (0.0,tmax), p)
+    return solve(prob, solver)
+end
+
 """
     initial_condition(mpx, μ; uniform_seed = true, fraction_infected = 0.05)
 
@@ -190,13 +200,13 @@ end
 function initial_condition(mp::HeterogeneousMetapopulation, μ; uniform_seed = true, fraction_infected = 0.05)
     M = nv(mp.h)
     N = mp.N
-    u0 = zeros(M, num_states(mp.dynamics))
-    u0[:,1] .= N/M
+    u0 = zeros(num_states(mp.dynamics), M)
+    u0[1,:] .= N/M
     if uniform_seed == false
-        u0[μ,2] = rand() * (N/M) * fraction_infected
+        u0[2,μ] = rand() * (N/M) * fraction_infected
     else
-        u0[:,2] .= rand(M) .* (N/M) * fraction_infected
+        u0[2,:] .= rand(M) .* (N/M) * fraction_infected
     end
-    u0[:,1] .-= u0[:,2]
+    u0[1,:] .-= u0[2,:]
     return u0 
 end
