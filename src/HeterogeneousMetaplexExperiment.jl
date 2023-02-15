@@ -5,6 +5,7 @@ using DifferentialEquations
 using Parameters: @with_kw
 using Statistics
 using DataFrames
+using Random
 
 
 @with_kw struct HeterogeneousMetaplexExperiment
@@ -138,6 +139,10 @@ function modify_system!(mpx::HeterogeneousMetaplex{SIS}, p, μ, β_new, g)
     p[4][μ] = float.(adjacency_matrix(g))
 end
 
+function modify_system!(mp::HeterogeneousMetapopulation{SIS}, p, μ, β_new, k_new)
+
+end
+
 function reset_system!(mpx_μ, p_μ, mpx, p, μ)
     mpx_μ.g[μ] = mpx.g[μ]
     p_μ[1][μ] = p[1][μ]
@@ -182,30 +187,42 @@ By default, the infected seed is uniformly spread around the metanodes. If `unif
 
 Returns the initial condition for the Metaplex system, as well as the reduced metapopulation initial condition.
 """
-function initial_condition(mpx::HeterogeneousMetaplex, μ; uniform_seed = true, fraction_infected = 0.05)
+function initial_condition(mpx::HeterogeneousMetaplex, μ; uniform_seed = true, fraction_infected = 0.05, rng=Xoshiro(2023))
     M = nv(mpx.h)
     N = nv(mpx.g[1])
     u0 = zeros(num_states(mpx.dynamics), N, M)
     u0[1,:,:] .= 1/M
     if uniform_seed == false
-        u0[2,:,μ] .= rand(N) .* fraction_infected
+        u0[2,:,μ] .= rand(rng,N) .* fraction_infected
     else
-        u0[2,:,:] .= rand(N,M) .* fraction_infected
+        u0[2,:,:] .= rand(rng,N,M) .* fraction_infected
     end
     u0[1,:,:] .-= u0[2,:,:]
     u0_mp = reshape(sum(u0, dims=2), (num_states(mpx.dynamics), M))
     return u0, u0_mp
 end
 
-function initial_condition(mp::HeterogeneousMetapopulation, μ; uniform_seed = true, fraction_infected = 0.05)
+function initial_condition(mp::HeterogeneousMetapopulation, μ; uniform_seed = true, fraction_infected = 0.05, rng=Xoshiro(2023))
     M = nv(mp.h)
     N = mp.N
     u0 = zeros(num_states(mp.dynamics), M)
     u0[1,:] .= N/M
     if uniform_seed == false
-        u0[2,μ] = rand() * (N/M) * fraction_infected
+        u0[2,μ] = rand(rng) * (N/M) * fraction_infected
     else
-        u0[2,:] .= rand(M) .* (N/M) * fraction_infected
+        u0[2,:] .= rand(rng,M) .* (N/M) * fraction_infected
+    end
+    u0[1,:] .-= u0[2,:]
+    return u0 
+end
+
+function initial_condition(::Type{HeterogeneousMetapopulation}, M, N, d, μ; uniform_seed = true, fraction_infected = 0.05,rng=Xoshiro(2023))
+    u0 = zeros(d, M)
+    u0[1,:] .= N/M
+    if uniform_seed == false
+        u0[2,μ] = rand(rng) * (N/M) * fraction_infected
+    else
+        u0[2,:] .= rand(rng,M) .* (N/M) * fraction_infected
     end
     u0[1,:] .-= u0[2,:]
     return u0 
