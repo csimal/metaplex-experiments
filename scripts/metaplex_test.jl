@@ -1,7 +1,6 @@
 using DrWatson
 @quickactivate "metaplex-experiments"
 
-using Plots
 using Random
 using BenchmarkTools
 using JLD2
@@ -17,9 +16,9 @@ ba_k = 5
 
 h = barabasi_albert(M, ba_k)
 
-β_base = 1.0
-γ = 1.05
-D = 1.0
+β_base = 0.5
+γ = 0.5
+D = 0.1
 
 k_base = 20
 
@@ -47,13 +46,14 @@ f!, p = meanfield_fun(mpx)
 @benchmark f!(du, u0, p, 0.0)
 
 mp = HeterogeneousMetapopulation(mpx)
-u0_mp = copy(transpose(u0_mp))
 du_mp = copy(u0_mp)
 
 f_mp!, p_mp = meanfield_fun(mp)
 @benchmark f_mp!(du_mp, u0_mp, p_mp, 0.0)
 
-final_infection(mpx, u0, 10.0)
+final_infection(mp, u0_mp, 10.0, solver=Rodas5())
+
+final_infection(mpx, u0, 10.0, solver=Rosenbrock32())
 
 @benchmark final_infection(mpx, u0, 10.0)
 

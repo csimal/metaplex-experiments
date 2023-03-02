@@ -31,20 +31,20 @@ k_factor = 10
 tmax = 1000.0
 
 params = Dict(
-    "rngseed" => 1:100,
+    "rngseed" => collect(1:100),
     "β" => βs,
     "γ" => γs,
     "D" => Ds,
     "M" => M,
     "N" => N,
     "beta_factor" => β_factor,
-    "k_factor" => 1,
+    "k_factor" => k_factor,
     "tmax" => tmax,
     "k" => k_base,
     "ba_k" => ba_k,
-    "u_seed" => "uniform",
+    "u_seed" => "constant",
 )
 dicts = dict_list(params)
 
 
-@benchmark map(makesim, dicts)
+@time map(makesim, dicts)

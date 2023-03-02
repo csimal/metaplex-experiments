@@ -154,12 +154,12 @@ end
 
 Compute the solution of the system `mpx` with initial condition `u_0` up to time `tmax`.
 """
-function final_infection(mpx, u_0, tmax; solver=Tsit5(), kws...)
+function final_infection(mpx, u_0, tmax; solver=Rodas5(), kws...)
     f!, p = meanfield_fun(mpx)
     return final_infection(f!, p, u_0, tmax; solver=solver, kws...)
 end
 
-function final_infection(f!, p, u_0, tmax; solver=Tsit5(), kws...)
+function final_infection(f!, p, u_0, tmax; solver=Rodas5(), kws...)
     prob = ODEProblem(f!, u_0, (0.0,tmax), p)
     return solve(prob, solver; 
                  callback = TerminateSteadyState(), # Stop when near equilibrium
@@ -168,12 +168,12 @@ function final_infection(f!, p, u_0, tmax; solver=Tsit5(), kws...)
                 )
 end
 
-function solve_infection(mpx, u_0, tmax; solver=Tsit5(), kws...)
+function solve_infection(mpx, u_0, tmax; solver=Rodas5(), kws...)
     f!, p = meanfield_fun(mpx)
     return solve_infection(f!, p, u_0, tmax; solver=solver, kws...)
 end
 
-function solve_infection(f!, p, u_0, tmax; solver=Tsit5(), kws...)
+function solve_infection(f!, p, u_0, tmax; solver=Rodas5(), kws...)
     prob = ODEProblem(f!, u_0, (0.0,tmax), p)
     return solve(prob, solver)
 end
@@ -190,15 +190,15 @@ Returns the initial condition for the Metaplex system, as well as the reduced me
 function initial_condition(mpx::HeterogeneousMetaplex, μ; uniform_seed = true, fraction_infected = 0.05, rng=Xoshiro(2023))
     M = nv(mpx.h)
     N = nv(mpx.g[1])
-    u0 = zeros(num_states(mpx.dynamics), N, M)
+    u0 = zeros(num_states(mpx.dynamics), M, N)
     u0[1,:,:] .= 1/M
     if uniform_seed == false
-        u0[2,:,μ] .= rand(rng,N) .* fraction_infected
+        u0[2,μ,:] .= rand(rng,N) .* fraction_infected
     else
-        u0[2,:,:] .= rand(rng,N,M) .* fraction_infected
+        u0[2,:,:] .= rand(rng,M,N) .* fraction_infected
     end
     u0[1,:,:] .-= u0[2,:,:]
-    u0_mp = reshape(sum(u0, dims=2), (num_states(mpx.dynamics), M))
+    u0_mp = reshape(sum(u0, dims=3), (num_states(mpx.dynamics), M))
     return u0, u0_mp
 end
 
@@ -219,7 +219,9 @@ end
 function initial_condition(::Type{HeterogeneousMetapopulation}, M, N, d, μ; uniform_seed = true, fraction_infected = 0.05,rng=Xoshiro(2023))
     u0 = zeros(d, M)
     u0[1,:] .= N/M
-    if uniform_seed == false
+    if uniform_seed == "constant"
+        u0[2,:] .= (N/M) * fraction_infected/2
+    elseif uniform_seed == false
         u0[2,μ] = rand(rng) * (N/M) * fraction_infected
     else
         u0[2,:] .= rand(rng,M) .* (N/M) * fraction_infected

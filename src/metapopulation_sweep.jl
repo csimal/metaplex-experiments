@@ -1,16 +1,16 @@
 using Random
 using Graphs
 
-function get_system_and_u0(rngseed,M,N,ba_k,β,γ,D,k,uniform_seed)
+function get_system_and_u0(rngseed,M,N,ba_k,β,γ,D,k,u_seed)
     rng = Xoshiro(rngseed)
     h = barabasi_albert(M,ba_k, rng=rng)
     mp = HeterogeneousMetapopulation(h,N,k,D,SIS(β,γ))
-    u0 = initial_condition(mp, 0; rng=rng)
+    u0 = initial_condition(mp, 0; uniform_seed=u_seed, rng=rng)
     return mp, u0
 end
 
 function makesim(d::Dict)
-    @unpack rngseed, β, γ, D, beta_factor, k_factor, tmax, k, ba_k, u_seed = d
+    @unpack rngseed, β, γ, D, M, N, beta_factor, k_factor, tmax, k, ba_k, u_seed = d
     mp, u0 = get_system_and_u0(rngseed, M, N, ba_k, β, γ, D, k, u_seed)
     fi = final_infection(mp, u0, tmax; solver=Rodas5())
     u_base = sum(fi[2,:,end]) / N
