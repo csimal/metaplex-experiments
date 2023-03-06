@@ -55,7 +55,7 @@ final_infection(mp, u0_mp, 10.0, solver=Rodas5())
 
 final_infection(mpx, u0, 10.0, solver=Rosenbrock32())
 
-@benchmark final_infection(mpx, u0, 10.0)
+@benchmark final_infection(mpx, u0, 10.0, solver=Tsit5())
 
 df1 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)
 df2 = @time full_experiment(mpx, u0, β_factor, k_base, k_factor, tmax)

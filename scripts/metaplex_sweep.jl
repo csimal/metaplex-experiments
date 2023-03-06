@@ -31,5 +31,18 @@ k_factor = 100
 tmax = 1000.0
 
 params = Dict(
-    
+    "rngseed" => seed,
+    "β" => β,
+    "γ" => γ,
+    "D" => D,
+    "M" => M,
+    "N" => N,
+    "beta_factor" => β_factor,
+    "k_factor" => k_factor,
+    "tmax" => tmax,
+    "k" => k_base,
+    "ba_k" => ba_k,
+    "u_seed" => "constant"
 )
+
+@time makesim(params)
