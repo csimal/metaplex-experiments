@@ -1,5 +1,11 @@
 using Distributions
 
+function random_geometric_network(N::Integer, d = 2, r)
+    xs = rand(N,d)
+    edges = [(i,j) for i in 1:N, j in i+1:N if norm(xs[i,:]-xs[j,:]) < r]
+    return SimpleGraphFromIterator(edges)
+end
+
 function random_spatial_network(N::Integer; # number of nodes
     d::Integer = 2, # dimension
     Pk = Poisson(10), # Expected degree distribution
